@@ -46,10 +46,10 @@ export default function Header() {
               )}
             </div>
           </Link>
-          <Link to="">
+          <Link to="/second-manage">
             <div className="relative flex items-center">
               <img className="w-[35px] cursor-pointer" src={orders} alt="" />
-              {currentPath === "" && (
+              {currentPath === "/second-manage" && (
                 <img
                   className="absolute left-[-35px] w-[30px]"
                   src={tick}

@@ -5,14 +5,40 @@ import {
   ModalBody,
   ModalContent,
 } from "@nextui-org/react";
+import { useDispatch, useSelector } from "react-redux";
+import { addAboutUsAction, addAchievementAction, addHeroTextSliderAction, addServiceAction, addWhyChooseUsAction, getAboutUsAction, getAchievementAction, getHeroTextSliderAction, getServiceAction, getWhyChoosUsAction, updateHeroTextLineAction } from "../../redux/action/LandingManagement";
+import cloudinaryUpload from '../../helper/cloudinaryUpload';
+
 
 export default function AboutUs() {
   const [isDeleteModal, setDeleteModal] = useState(false);
-  const [isWhyModalOpen, setWhyModalOpen] = useState(false);
-
+  const [isServiceModalOpen, setServiceModalOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [editText, setEditText] = useState({ id: null, text: "" });
   const [inputValue, setInputValue] = useState("");
   const [data, setData] = useState();
   const [isaboutModalOpen, setAboutModalOpen] = useState(false);
+  const dispatch = useDispatch();
+  const [formData, setFormData] = useState({
+    title: '',
+    image1: '',
+    image2: '',
+    description: '',
+  });
+
+  const lineData = useSelector((state) => state.landing.getTextLine);
+  const aboutUsData = useSelector((state) => state.landing.getAboutUs);
+  const chooseUsData = useSelector((state) => state.landing.getWhyChooseUs);
+  const serviceData = useSelector((state) => state.landing.getService);
+  const achievementData = useSelector((state) => state.landing.getAchevement);
+
+  useEffect(() => {
+    dispatch(getHeroTextSliderAction());
+    dispatch(getAboutUsAction());
+    dispatch(getWhyChoosUsAction());
+    dispatch(getServiceAction());
+    dispatch(getAchievementAction());
+  }, [dispatch]);
 
   // About us data structure (title, content, image1, image2, etc.)
   const [aboutData, setAboutData] = useState(null);
@@ -20,8 +46,20 @@ export default function AboutUs() {
   // For the modal fields
   const [aboutTitle, setAboutTitle] = useState("");
   const [aboutContent, setAboutContent] = useState("");
-  const [aboutImage1, setAboutImage1] = useState(null);
-  const [aboutImage2, setAboutImage2] = useState(null);
+  const [image1, setImage1] = useState(null);
+  const [image2, setImage2] = useState(null);
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [image, setImage] = useState(null);
+
+  const [serviceTitle, setServiceTitle] = useState("");
+  const [serviceDescription, setServiceDescription] = useState("");
+  const [icon, setIcon] = useState(null);
+
+  const [counting, setCounting] = useState();
+  const [name, setName] = useState();
+
 
   const handleEdit = () => {
     setInputValue(data);
@@ -47,14 +85,14 @@ export default function AboutUs() {
     if (aboutData) {
       setAboutTitle(aboutData.title || "");
       setAboutContent(aboutData.content || "");
-      setAboutImage1(aboutData.image1 || null);
-      setAboutImage2(aboutData.image2 || null);
+      setImage1(aboutData.image1 || null);
+      setImage2(aboutData.image2 || null);
     } else {
       // Otherwise, clear the fields for adding
       setAboutTitle("");
       setAboutContent("");
-      setAboutImage1(null);
-      setAboutImage2(null);
+      setImage1(null);
+      setImage2(null);
     }
     setAboutModalOpen(true);
   };
@@ -63,35 +101,191 @@ export default function AboutUs() {
     setAboutModalOpen(false);
   };
 
-  // Handle file inputs (image selection)
-  const handleImage1Change = (event) => {
-    const file = event.target.files?.[0];
-    if (file) setAboutImage1(URL.createObjectURL(file));
+  const handleService = () => {
+    setServiceModalOpen(true);
+  };
+  const handleServiceClose = () => {
+    setServiceModalOpen(false);
   };
 
-  const handleImage2Change = (event) => {
-    const file = event.target.files?.[0];
-    if (file) setAboutImage2(URL.createObjectURL(file));
+  //Integration==========================================================================================================================================================================
+
+  const handleCreateText = async (e) => {
+    e.preventDefault();
+    if (!text.trim()) return;
+    await dispatch(addHeroTextSliderAction({ text }));
+    setText('');
   };
 
-  // Save or update aboutData
-  const handleAboutSave = () => {
-    const newAboutData = {
-      title: aboutTitle,
-      content: aboutContent,
-      image1: aboutImage1,
-      image2: aboutImage2,
-    };
-    setAboutData(newAboutData);
-    setAboutModalOpen(false);
+  const handleEditText = async (e) => {
+    e.preventDefault();
+    if (!editText.text.trim()) return;
+    await dispatch(updateHeroTextLineAction(editText));
+    setEditText({ id: null, text: "" });
   };
 
-  const handleWhyus = () => {
-    setWhyModalOpen(true);
+  const handleImage2Change = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const uploadedImageUrl = await cloudinaryUpload(file);
+      setImage2(uploadedImageUrl);
+    }
   };
-  const handleWhyusClose = () => {
-    setWhyModalOpen(false);
+
+  const handleImage1Change = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const uploadedImageUrl = await cloudinaryUpload(file);
+      setImage1(uploadedImageUrl);
+    }
   };
+
+
+  const handleAboutSave = async () => {
+    if (!aboutTitle || !aboutContent || !image1 || !image2) {
+      alert("Please fill in all fields!");
+      return;
+    }
+
+    try {
+      const payload = {
+        title: aboutTitle,
+        description: aboutContent,
+        image1,
+        image2,
+      };
+
+      const response = await dispatch(addAboutUsAction(payload));
+      console.log("Response from addAboutUsAction:", response);
+
+      if (response) {
+        setAboutTitle("");
+        setAboutContent("");
+        setImage1(null);
+        setImage2(null);
+        closeAboutModal();
+        dispatch(getAboutUsAction());
+      } else {
+        console.error("Unexpected response:", response);
+      }
+    } catch (error) {
+      console.error("Error saving About Us data:", error.message);
+      alert("Failed to save About Us data. Please try again.");
+    }
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const uploadedImageUrl = await cloudinaryUpload(file);
+      setImage(uploadedImageUrl);
+    }
+  };
+
+  const handleWhyChooseUsSave = async () => {
+    if (!title || !description || !image) {
+      alert("Please fill in all fields!");
+      return;
+    }
+
+    try {
+      const payload = {
+        title: title,
+        text: description,
+        icon: image,
+      };
+
+      console.log('payload', payload)
+
+      const response = await dispatch(addWhyChooseUsAction(payload));
+      console.log("Response from addAboutUsAction:", response);
+
+      if (response) {
+        setTitle("");
+        setDescription("");
+        setImage(null);
+        dispatch(getWhyChoosUsAction());
+      } else {
+        console.error("Unexpected response:", response);
+      }
+    } catch (error) {
+      console.error("Error saving About Us data:", error.message);
+      alert("Failed to save About Us data. Please try again.");
+    }
+  };
+  const handleIconChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const uploadedImageUrl = await cloudinaryUpload(file);
+      setIcon(uploadedImageUrl);
+    }
+  };
+
+  const handleServiceSave = async () => {
+    if (!serviceTitle || !serviceDescription || !icon) {
+      alert("Please fill in all fields!");
+      return;
+    }
+
+    try {
+      const payload = {
+        title: serviceTitle,
+        description: serviceDescription,
+        icon,
+      };
+
+      console.log('payload', payload)
+
+      const response = await dispatch(addServiceAction(payload));
+      console.log("Response from addAboutUsAction:", response);
+
+      if (response) {
+        setServiceTitle("");
+        setServiceDescription("");
+        setIcon(null);
+        handleServiceClose();
+        dispatch(getServiceAction());
+      } else {
+        console.error("Unexpected response:", response);
+      }
+    } catch (error) {
+      console.error("Error saving About Us data:", error.message);
+      alert("Failed to save About Us data. Please try again.");
+    }
+  };
+
+  const handleAchievementSave = async () => {
+    if (!counting || !name) {
+      alert("Please fill in all fields!");
+      return;
+    }
+
+    try {
+      const payload = {
+        counting,
+        name,
+      };
+
+      console.log('payload', payload)
+
+      const response = await dispatch(addAchievementAction(payload));
+      console.log("Response from addAboutUsAction:", response);
+
+      if (response) {
+        setCounting("");
+        setName("");
+        dispatch(getAchievementAction());
+      } else {
+        console.error("Unexpected response:", response);
+      }
+    } catch (error) {
+      console.error("Error saving About Us data:", error.message);
+      alert("Failed to save About Us data. Please try again.");
+    }
+  };
+
+  console.log('achievementData', achievementData)
+
 
   return (
     <>
@@ -120,35 +314,38 @@ export default function AboutUs() {
                       <input
                         className="w-[100%] h-[100%] text-[19px] font-[500] font-Roboto px-[10px] outline-none rounded-[9px]"
                         type="text"
-                        value={inputValue} // Bind input value to the state
-                        onChange={handleInputChange} // Handle input changes
+                        name=" text"
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
                       />
                     </div>
                     <div
                       className="font-[600] text-[20px] text-center justify-center flex text-[#fff] bg-[#177e24] items-center border-[1.5px] w-[130px] h-[50px] border-[#7a6c6c] rounded-[9px]"
-                      onClick={handleSave} // Save when clicked
+                      onClick={handleCreateText} // Save when clicked
                     >
                       <p>Save</p>
                     </div>
                   </div>
                   <div className="flex gap-[10px] mt-[10px] items-center">
-                    <div className="border-[1.5px] w-[100%] flex items-center justify-between p-[10px] h-[50px] border-[#a53d35] rounded-[9px]">
-                      <p className="text-[20px] font-Montserrat items-center flex">
-                        {data}
-                      </p>
-                      <div className="flex justify-center items-center gap-[15px] text-center py-2">
-                        <i
-                          className="fa-solid  cursor-pointer  text-[#000000] text-[19px] fa-pen-to-square"
-                          onClick={handleEdit} // Populate input field when edit is clicked
-                        ></i>
-                        <i
-                          className="text-[18px] mt-[1px] text-[#ff0b0b] cursor-pointer fa-solid fa-trash-can"
-                          onClick={() =>
-                            alert("Delete action will be implemented.")
-                          } // Example placeholder for delete
-                        ></i>
+                    {lineData?.map((item, index) => (
+                      <div key={index} className="border-[1.5px] w-[100%] flex items-center justify-between p-[10px] h-[50px] border-[#a53d35] rounded-[9px]">
+                        <p className="text-[20px] font-Montserrat items-center flex">
+                          {item?.text}
+                        </p>
+                        <div className="flex justify-center items-center gap-[15px] text-center py-2">
+                          <i
+                            className="fa-solid  cursor-pointer  text-[#000000] text-[19px] fa-pen-to-square"
+                            onClick={handleEdit}
+                          ></i>
+                          <i
+                            className="text-[18px] mt-[1px] text-[#ff0b0b] cursor-pointer fa-solid fa-trash-can"
+                            onClick={() =>
+                              alert("Delete action will be implemented.")
+                            }
+                          ></i>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
                 <div>
@@ -157,62 +354,64 @@ export default function AboutUs() {
                   </p>
 
                   <div className="flex w-[100%] flex-col justify-between gap-[20px]">
-                    <div className="flex justify-between gap-[15px] w-[100%]">
-                      <div className="flex flex-col gap-[15px] justify-center">
-                        {/* First image */}
-                        <div className="h-[270px] w-[280px] overflow-hidden border-[#a53d35] border-[1.8px] justify-center items-center rounded-[8px] flex">
-                          {aboutData?.image1 ? (
-                            <img
-                              className="w-[100%] h-[100%]"
-                              src={aboutData.image1}
-                              alt="About 1"
-                            />
-                          ) : (
-                            <p className="text-gray-400">No image 1</p>
-                          )}
+                    {aboutUsData?.map((item, index) => (
+                      <div key={index} className="flex justify-between gap-[15px] w-[100%]">
+                        <div className="flex flex-col gap-[15px] justify-center">
+                          {/* First image */}
+                          <div className="h-[270px] w-[280px] overflow-hidden border-[#a53d35] border-[1.8px] justify-center items-center rounded-[8px] flex">
+                            {item?.image1 ? (
+                              <img
+                                className="w-[100%] h-[100%]"
+                                src={item.image1}
+                                alt="About 1"
+                              />
+                            ) : (
+                              <p className="text-gray-400">No image 1</p>
+                            )}
+                          </div>
+
+                          {/* Second image */}
+                          <div className="h-[200px] w-[280px] overflow-hidden border-[#a53d35] border-[1.8px] justify-center items-center rounded-[8px] flex">
+                            {item?.image2 ? (
+                              <img
+                                className="w-[100%] h-[100%]"
+                                src={item.image2}
+                                alt="About 2"
+                              />
+                            ) : (
+                              <p className="text-gray-400">No image 2</p>
+                            )}
+                          </div>
                         </div>
 
-                        {/* Second image */}
-                        <div className="h-[200px] w-[280px] overflow-hidden border-[#a53d35] border-[1.8px] justify-center items-center rounded-[8px] flex">
-                          {aboutData?.image2 ? (
-                            <img
-                              className="w-[100%] h-[100%]"
-                              src={aboutData.image2}
-                              alt="About 2"
-                            />
-                          ) : (
-                            <p className="text-gray-400">No image 2</p>
-                          )}
-                        </div>
-                      </div>
+                        {/* Title and Content */}
+                        <div className="w-[79%] flex flex-col gap-[10px]">
+                          <div className="text-[20px] w-[100%] flex items-center font-Roboto px-[10px] font-[500] border-[#a53d35] h-[60px] border-[1.8px] rounded-[8px]">
+                            <p>{item?.title || "No Title Yet"}</p>
+                          </div>
 
-                      {/* Title and Content */}
-                      <div className="w-[79%] flex flex-col gap-[10px]">
-                        <div className="text-[20px] w-[100%] flex items-center font-Roboto px-[10px] font-[500] border-[#a53d35] h-[60px] border-[1.8px] rounded-[8px]">
-                          <p>{aboutData?.title || "No Title Yet"}</p>
-                        </div>
+                          <div className="border-[1.8px] border-[#a53d35] text-[20px] rounded-[8px] h-[200px] p-[10px]">
+                            <p className="flex text-[18px] font-Montserrat">
+                              {item?.description || "No content yet..."}
+                            </p>
+                          </div>
 
-                        <div className="border-[1.8px] border-[#a53d35] text-[20px] rounded-[8px] h-[200px] p-[10px]">
-                          <p className="flex text-[18px] font-Montserrat">
-                            {aboutData?.content || "No content yet..."}
-                          </p>
-                        </div>
-
-                        <div className="flex w-[100%] mt-[20px] justify-end">
-                          <div className="flex gap-[20px]">
-                            <div
-                              className="w-[130px] h-[45px] rounded-md mx-auto cursor-pointer flex justify-center items-center text-[#fff] font-Poppins font-[600] bg-[#a53d35] active:scale-95 transition-transform duration-150"
-                              onClick={openAboutModal}
-                            >
-                              {/* If we have data, show "Edit"; otherwise, "Add" */}
-                              <p className="font-Montserrat">
-                                {aboutData ? "Edit" : "Add"}
-                              </p>
+                          <div className="flex w-[100%] mt-[20px] justify-end">
+                            <div className="flex gap-[20px]">
+                              <div
+                                className="w-[130px] h-[45px] rounded-md mx-auto cursor-pointer flex justify-center items-center text-[#fff] font-Poppins font-[600] bg-[#a53d35] active:scale-95 transition-transform duration-150"
+                                onClick={openAboutModal}
+                              >
+                                {/* If we have data, show "Edit"; otherwise, "Add" */}
+                                <p className="font-Montserrat">
+                                  {aboutData ? "Edit" : "Add"}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
                 <div className=" flex flex-col gap-[10px]">
@@ -222,8 +421,27 @@ export default function AboutUs() {
 
                   <div className="flex gap-[25px] flex-wrap">
                     <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
-                      <div className=" flex w-[100%] rounded-[6px] border-[#a53d35] items-center border-[1.5px] justify-center  h-[200px]">
-                        <i className="text-[39px] text-[#a53d35] fa-solid fa-plus"></i>
+                      <div className=" flex w-[100%] rounded-[6px] border-[#a53d35] items-center border-[1.5px] justify-center  h-[200px]"
+                        onClick={() =>
+                          document.getElementById("imagePicker1").click()
+                        }
+                      >
+                        {image ? (
+                          <img
+                            className="w-[100%] h-[100%]"
+                            src={image}
+                            alt="Image"
+                          />
+                        ) : (
+                          <i className="text-[39px] text-[#a53d35] fa-solid fa-plus"></i>
+                        )}
+                        <input
+                          type="file"
+                          name="icon"
+                          id="imagePicker1"
+                          style={{ display: "none" }}
+                          onChange={handleImageChange}
+                        />
                       </div>
 
                       <div className="border-[1.5px] w-[100%] h-[50px] border-[#a53d35] rounded-[7px]">
@@ -231,62 +449,74 @@ export default function AboutUs() {
                           className="w-[100%] h-[100%] text-[19px] font-[500] font-Roboto px-[10px] outline-none rounded-[6px]"
                           type="text"
                           placeholder="Title"
+                          name="title"
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
                         />
                       </div>
                       <div className="border-[1.5px] w-[100%] h-[120px] border-[#a53d35] p-[3px] rounded-[6px]">
                         <textarea
                           className="w-[100%] h-[100%] text-[19px] font-[500] font-Roboto px-[10px] outline-none rounded-[6px]"
                           type="text"
+                          name="text"
                           placeholder="Description"
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
                         ></textarea>
                       </div>
                       <div className=" flex w-[100%] ">
-                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
+                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
+                          onClick={handleWhyChooseUsSave}>
                           Submit
                         </div>
                       </div>
                     </div>
-                    <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
-                      <div className=" flex w-[100%] rounded-[6px] border-[#a53d35] items-center border-[1.5px] justify-center  h-[200px]">
-                        <img className=" w-[100%] h-[100%]" src="" />
-                      </div>
+                    {chooseUsData?.map((item, index) => (
+                      <div key={index} className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
+                        <div className=" flex w-[100%] rounded-[6px] border-[#a53d35] items-center border-[1.5px] justify-center  h-[200px]">
+                          <img className=" w-[100%] h-[100%]" src={item?.icon} />
+                        </div>
 
-                      <div className="border-[1.5px] w-[100%] h-[50px] border-[#a53d35] rounded-[7px]">
-                        <p></p>
-                      </div>
-                      <div className="border-[1.5px] w-[100%] h-[120px] border-[#a53d35] p-[3px] rounded-[6px]">
-                        <p></p>
-                      </div>
-                      <div className=" flex w-[100%] gap-[10px] ">
-                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
-                          <i
-                            className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
+                        <div className="border-[1.5px] w-[100%] h-[50px] border-[#a53d35] rounded-[7px]">
+                          <p>{item?.title}</p>
+                        </div>
+                        <div className="border-[1.5px] w-[100%] h-[120px] border-[#a53d35] p-[3px] rounded-[6px]">
+                          <p>{item?.text}</p>
+                        </div>
+                        <div className=" flex w-[100%] gap-[10px] ">
+                          <div className=" w-[100%] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
+                            <i
+                              className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
                             // Populate input field when edit is clicked
-                          ></i>
-                        </div>
-                        <div
-                          className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
-                          onClick={handleDeleteOpen}
-                        >
-                          <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
+                            ></i>
+                          </div>
+                          <div
+                            className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
+                            onClick={handleDeleteOpen}
+                          >
+                            <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
+              </div>
 
-                <div className=" flex flex-col gap-[10px]">
-                  <p className="font-[500] font-Montserrat text-[25px]">
-                    Services
-                  </p>
-                  <div
-                    className=" w-[150px] cursor-pointer flex h-[45px] gap-[10px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#204d28] rounded-[6px]"
-                    onClick={handleWhyus}
-                  >
-                    <i class="fa-solid fa-plus"></i>
-                    <p>Add</p>
-                  </div>
-                  <div className="flex gap-[25px] flex-wrap">
+              <div className=" flex flex-col gap-[10px]">
+                <p className="font-[500] font-Montserrat text-[25px]">
+                  Services
+                </p>
+                <div
+                  className=" w-[150px] cursor-pointer flex h-[45px] gap-[10px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#204d28] rounded-[6px]"
+                  onClick={handleService}
+                >
+                  <i className="fa-solid fa-plus"></i>
+                  <p>Add</p>
+                </div>
+                <div className="flex flex-wrap gap-[16px]">
+                {serviceData?.map((item, index) => (
+                  <div key={index} className="flex gap-[25px] w-[100] flex-wrap">
                     {/* <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
                       <div className=" flex w-[100%] rounded-[6px] border-[#a53d35] items-center border-[1.5px] justify-center  h-[200px]">
                         <i className="text-[39px] text-[#a53d35] fa-solid fa-plus"></i>
@@ -315,22 +545,22 @@ export default function AboutUs() {
                     <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[400px]">
                       <div className="flex gap-[10px] w-[100%]">
                         <div className=" flex w-[120px] rounded-[6px] border-[#a53d35] items-center border-[1.5px] justify-center  h-[100px]">
-                          <img className=" w-[100%] h-[100%]" src="" />
+                          <img className=" w-[100%] h-[100%]" src={item?.icon} />
                         </div>
 
                         <div className="border-[1.5px] w-[80%] h-[50px] border-[#a53d35] rounded-[7px]">
-                          <p></p>
+                          <p>{item?.title}</p>
                         </div>
                       </div>
 
                       <div className="border-[1.5px] w-[100%] h-[120px] border-[#a53d35] p-[3px] rounded-[6px]">
-                        <p></p>
+                        <p>{item?.description}</p>
                       </div>
                       <div className=" flex w-[100%] gap-[10px] ">
                         <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
                           <i
                             className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
-                            // Populate input field when edit is clicked
+                          // Populate input field when edit is clicked
                           ></i>
                         </div>
                         <div
@@ -342,67 +572,77 @@ export default function AboutUs() {
                       </div>
                     </div>
                   </div>
+                ))}
                 </div>
-
-                <div className=" flex flex-col gap-[10px]">
-                  <p className="font-[500] font-Montserrat text-[25px]">
-                    Achievement
-                  </p>
-
-                  <div className="flex gap-[25px] flex-wrap">
-                    <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
-                      <div className="border-[1.5px] w-[100%] h-[90px] border-[#a53d35] rounded-[7px]">
-                        <input
-                          className="w-[100%] h-[100%] text-center text-[40px] font-[500] font-Roboto px-[10px] outline-none rounded-[6px]"
-                          type="number"
-                          placeholder="0.0"
-                        />
-                      </div>
-                      <div className="border-[1.5px] w-[100%] h-[50px] border-[#a53d35] p-[3px] rounded-[6px]">
-                        <input
-                          className="w-[100%] h-[100%]  text-[19px] font-[500] font-Roboto px-[10px] outline-none rounded-[6px]"
-                          type="text"
-                          placeholder="Title"
-                        />
-                      </div>
-                      <div className=" flex w-[100%] ">
-                        <div className=" w-[100%] flex  cursor-pointer h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
-                          Submit
-                        </div>
-                      </div>
-                    </div>
-                    <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
-                      <div className="border-[1.5px] w-[100%] h-[90px] border-[#a53d35]  flex justify-center items-center  rounded-[7px]">
-                        <p className=" text-[40px]  text-center font-Montserrat ">
-                          345
-                        </p>
-                      </div>
-                      <div className="border-[1.5px] w-[100%] h-[50px]  flex  items-center border-[#a53d35] p-[3px] rounded-[6px]">
-                        <p className=" text-[16px] px-[10px] font-Montserrat ">
-                          tyfghkjnlm
-                        </p>
-                      </div>
-                      <div className=" flex w-[100%] gap-[10px] ">
-                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
-                          <i
-                            className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
-                            // Populate input field when edit is clicked
-                          ></i>
-                        </div>
-                        <div
-                          className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
-                          onClick={handleDeleteOpen}
-                        >
-                          <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-
-             
               </div>
+
+              <div className=" flex flex-col gap-[10px]">
+                <p className="font-[500] font-Montserrat text-[25px]">
+                  Achievement
+                </p>
+
+                <div className="flex gap-[25px] flex-wrap">
+                  <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
+                    <div className="border-[1.5px] w-[100%] h-[90px] border-[#a53d35] rounded-[7px]">
+                      <input
+                        className="w-[100%] h-[100%] text-center text-[40px] font-[500] font-Roboto px-[10px] outline-none rounded-[6px]"
+                        type="text"
+                        name="counting"
+                        placeholder="0"
+                        value={counting}
+                        onChange={(e) => setCounting(e.target.value)}
+                      />
+                    </div>
+                    <div className="border-[1.5px] w-[100%] h-[50px] border-[#a53d35] p-[3px] rounded-[6px]">
+                      <input
+                        className="w-[100%] h-[100%]  text-[19px] font-[500] font-Roboto px-[10px] outline-none rounded-[6px]"
+                        type="text"
+                        name="name"
+                        placeholder="Title"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
+                    </div>
+                    <div className=" flex w-[100%] ">
+                      <div className=" w-[100%] flex  cursor-pointer h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
+                      onClick={handleAchievementSave}>
+                        Submit
+                      </div>
+                    </div>
+                  </div>
+                  {achievementData?.map((item, index) => (
+                  <div key={index} className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
+                    <div className="border-[1.5px] w-[100%] h-[90px] border-[#a53d35]  flex justify-center items-center  rounded-[7px]">
+                      <p className=" text-[40px]  text-center font-Montserrat ">
+                        {item?.counting}
+                      </p>
+                    </div>
+                    <div className="border-[1.5px] w-[100%] h-[50px]  flex  items-center border-[#a53d35] p-[3px] rounded-[6px]">
+                      <p className=" text-[16px] px-[10px] font-Montserrat ">
+                        {item?.name}
+                      </p>
+                    </div>
+                    <div className=" flex w-[100%] gap-[10px] ">
+                      <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
+                        <i
+                          className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
+                        // Populate input field when edit is clicked
+                        ></i>
+                      </div>
+                      <div
+                        className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
+                        onClick={handleDeleteOpen}
+                      >
+                        <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
+                      </div>
+                    </div>
+                  </div>
+                  ))}
+                </div>
+              </div>
+
+
+
             </div>
           </div>
         </div>
@@ -456,10 +696,10 @@ export default function AboutUs() {
                     document.getElementById("imagePicker1").click()
                   }
                 >
-                  {aboutImage1 ? (
+                  {image1 ? (
                     <img
                       className="w-[100%] h-[100%]"
-                      src={aboutImage1}
+                      src={image1}
                       alt="About 1"
                     />
                   ) : (
@@ -467,6 +707,7 @@ export default function AboutUs() {
                   )}
                   <input
                     type="file"
+                    name="image1"
                     id="imagePicker1"
                     style={{ display: "none" }}
                     onChange={handleImage1Change}
@@ -479,10 +720,10 @@ export default function AboutUs() {
                     document.getElementById("imagePicker2").click()
                   }
                 >
-                  {aboutImage2 ? (
+                  {image2 ? (
                     <img
                       className="w-[100%] h-[100%]"
-                      src={aboutImage2}
+                      src={image2}
                       alt="About 2"
                     />
                   ) : (
@@ -490,6 +731,7 @@ export default function AboutUs() {
                   )}
                   <input
                     type="file"
+                    name="image2"
                     id="imagePicker2"
                     style={{ display: "none" }}
                     onChange={handleImage2Change}
@@ -512,7 +754,7 @@ export default function AboutUs() {
                 <div className="text-[16px] w-[100%] p-[10px] font-[600] overflow-hidden border-[#000] h-[180px] border-[1px] rounded-[8px]">
                   <textarea
                     className="flex w-[100%] outline-none h-[100%]"
-                    name="content"
+                    name="description"
                     placeholder="Description"
                     value={aboutContent}
                     onChange={(e) => setAboutContent(e.target.value)}
@@ -532,7 +774,7 @@ export default function AboutUs() {
         </ModalContent>
       </NextUIModal>
 
-      <NextUIModal isOpen={isWhyModalOpen} onOpenChange={handleWhyusClose}>
+      <NextUIModal isOpen={isServiceModalOpen} onOpenChange={handleServiceClose}>
         <ModalContent className="md:max-w-[850px] max-w-[850px] relative flex justify-center !p-[10px] mx-auto shadow-delete">
           <div className="relative w-[100%] p-[30px] h-[100%]">
             <div className="flex gap-[20px] w-[100%]">
@@ -545,10 +787,10 @@ export default function AboutUs() {
                     document.getElementById("imagePicker2").click()
                   }
                 >
-                  {aboutImage2 ? (
+                  {icon ? (
                     <img
                       className="w-[100%] h-[100%]"
-                      src={aboutImage2}
+                      src={icon}
                       alt="About 2"
                     />
                   ) : (
@@ -556,9 +798,10 @@ export default function AboutUs() {
                   )}
                   <input
                     type="file"
+                    name="icon"
                     id="imagePicker2"
                     style={{ display: "none" }}
-                    onChange={handleImage2Change}
+                    onChange={handleIconChange}
                   />
                 </div>
               </div>
@@ -571,30 +814,32 @@ export default function AboutUs() {
                     type="text"
                     name="title"
                     placeholder="Title"
-                    value={aboutTitle}
-                    onChange={(e) => setAboutTitle(e.target.value)}
+                    value={serviceTitle}
+                    onChange={(e) => setServiceTitle(e.target.value)}
                   />
                 </div>
                 <div className="text-[16px] w-[100%] p-[10px] font-[600] overflow-hidden border-[#000] h-[100px] border-[1px] rounded-[8px]">
                   <textarea
                     className="flex w-[100%] outline-none h-[100%]"
-                    name="content"
+                    name="text"
                     placeholder="Description"
+                    value={serviceDescription}
+                    onChange={(e) => setServiceDescription(e.target.value)}
                   />
                 </div>
               </div>
             </div>
-            <div className="text-[16px] mt-[10px] w-[100%] p-[10px] font-[600] overflow-hidden border-[#000] h-[140px] border-[1px] rounded-[8px]">
+            {/* <div className="text-[16px] mt-[10px] w-[100%] p-[10px] font-[600] overflow-hidden border-[#000] h-[140px] border-[1px] rounded-[8px]">
               <textarea
                 className="flex w-[100%] outline-none h-[100%]"
                 name="content"
                 placeholder=" Full of Description"
               />
-            </div>
+            </div> */}
             {/* Save button */}
             <div
               className="w-[100%] font-Montserrat h-[45px] mt-[30px] rounded-md mx-auto cursor-pointer flex justify-center items-center text-[#fff] font-[600] bg-[#a53d35] active:scale-95 transition-transform duration-150"
-              onClick={handleAboutSave}
+              onClick={handleServiceSave}
             >
               <p>Save</p>
             </div>
