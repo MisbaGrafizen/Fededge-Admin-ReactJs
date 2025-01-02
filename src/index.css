@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+.bg-overlay\/50 {
+    background-color: transparent !important;
+}
+
+.tap-highlight-transparent {
+    display: none !important;
+}
+
+.customres {
+bottom: 13.2% !important;
+}
+
+@media only screen and (max-height: 760px) and (min-height: 500px) {
+    .customres {
+        bottom: 13.2% !important;
+    }
+}
+
+@media only screen and (max-height: 1000px) and (min-height: 800px) {
+    .customres {
+        bottom: 14.9% !important;
+    }
+}
+
+
+
+
+
+
+
+
+
+.ck-editor__editable {
+  min-height: 150px; /* Adjust this value as needed */
+  border: 1px solid #ccc; /* Border for the editor area */
+  border-radius: 10px; /* Rounded corners */
+  padding: 10px; /* Add padding inside the textarea */
+  font-size: 16px; /* Optional: Adjust font size */
+  background-color: #fff; /* Optional: Background color */
+}
+
+/* Customize the toolbar appearance */
+.ck-toolbar {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  margin-bottom: 10px;
+}
+
+/* Hide the 'Powered by CKEditor' watermark */
+.ck-powered-by {
+  display: none;
+}
+
+/* Optional: Adjust the placeholder text */
+.ck-placeholder {
+  color: #a1a1a1;
+}
+
+
+.ck-rounded-corners .ck.ck-editor__top .ck-sticky-panel .ck-sticky-panel__content, .ck.ck-editor__top .ck-sticky-panel .ck-sticky-panel__content.ck-rounded-corners {
+  border-radius: 10px 10px 0px 0px !important;
+
+}
+
+.ck.ck-editor__top .ck-sticky-panel .ck-sticky-panel__content .ck-toolbar {
+  border-radius: 8px 8px  0px 0px ;
+}
+.ck-rounded-corners .ck.ck-editor__main>.ck-editor__editable, .ck.ck-editor__main>.ck-editor__editable.ck-rounded-corners {
+border-radius: 0px 0px 8px 8px !important;
+
+}
