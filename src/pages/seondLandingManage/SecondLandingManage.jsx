@@ -6,7 +6,7 @@ import {
   ModalContent,
 } from "@nextui-org/react";
 import { useDispatch, useSelector } from "react-redux";
-import { addBlogAction, addFaqAction, addTeamAction, addTestimonialAction, getAllBlogsAction, getAllTeamAction, getAllTestimonialAction, getFaqAction } from "../../redux/action/generalManagement";
+import { addBlogAction, addFaqAction, addTeamAction, addTestimonialAction, deleteBlogAction, deleteFaqAction, deleteTeamAction, getAllBlogsAction, getAllTeamAction, getAllTestimonialAction, getFaqAction, updateBlogAction, updateFaqAction, updateTeamAction, updateTestimonialAction } from "../../redux/action/generalManagement";
 import cloudinaryUpload from "../../helper/cloudinaryUpload";
 
 export default function SecondLandingManage() {
@@ -36,6 +36,14 @@ export default function SecondLandingManage() {
   const [subDescription, setSubDescription] = useState("");
   const [city, setCity] = useState("");
 
+  const [deleteItemId, setDeleteItemId] = useState(null);
+  const [deleteType, setDeleteType] = useState("");
+  const [editItemId, setEditItemId] = useState(null); 
+  const [mode, setMode] = useState("add"); 
+
+
+
+
 
   useEffect(() => {
     dispatch(getAllTeamAction());
@@ -45,16 +53,158 @@ export default function SecondLandingManage() {
   }, [dispatch]);
 
 
-  const handleDeleteOpen = () => {
+  //Integration===============================================================================================================================================================================
+  
+  const handleDeleteOpen = (id, type) => {
+    setDeleteItemId(id);
+    setDeleteType(type);
     setDeleteModal(true);
   };
 
   const handleDeleteClose = () => {
     setDeleteModal(false);
+    setDeleteItemId(null);
+    setDeleteType("");
   };
 
-  //Integration===============================================================================================================================================================================
- 
+  const handleEdit = (item, type) => {
+    setMode("edit");
+    setEditItemId(item._id); // Set the ID of the item to be updated
+  
+    if (type === "team") {
+      setName(item.name);
+      setRole(item.role);
+      setImage(item.image);
+    } else if (type === "faq") {
+      setQuestion(item.question);
+      setAnswer(item.answer);
+    } else if (type === "blog") {
+      setTitle(item.title);
+      setBlogImage(item.image);
+      setDate(item.date);
+      setAuthor(item.author);
+    } else if (type === "testimonial") {
+      setFeedbackName(item.name);
+      setDescription(item.description);
+      setSubDescription(item.subDescription);
+      setCity(item.city);
+      setFeedbackImage(item.image);
+    }
+  };
+
+  const handleSave = async (type) => {
+    let id = editItemId; // Assuming `editItemId` is the identifier.
+    if (typeof id === "object") {
+      id = id?._id || id?.id || id?.toString(); // Extract the actual `id` field.
+    }
+  
+    const payload = {};
+    if (type === "team") {
+      payload.name = name;
+      payload.role = role;
+      payload.image = image;
+    } else if (type === "faq") {
+      payload.question = question;
+      payload.answer = answer;
+    } else if (type === "blog") {
+      payload.title = title;
+      payload.image = blogImage;
+      payload.date = date;
+      payload.author = author;
+    } else if (type === "testimonial") {
+      payload.name = feedbackName;
+      payload.description = description;
+      payload.subDescription = subDescription;
+      payload.city = city;
+      payload.image = feedbackImage;
+    }
+  
+    try {
+      if (id) {
+        // Update existing record
+        console.log(`Updating ${type} with ID: ${id}`);
+        if (type === "team") {
+          await dispatch(updateTeamAction(id, payload));
+          dispatch(getAllTeamAction());
+        } else if (type === "faq") {
+          await dispatch(updateFaqAction(id, payload));
+          dispatch(getFaqAction());
+        } else if (type === "blog") {
+          await dispatch(updateBlogAction(id, payload));
+          dispatch(getAllBlogsAction());
+        } else if (type === "testimonial") {
+          await dispatch(updateTestimonialAction(id, payload));
+          dispatch(getAllTestimonialAction());
+        }
+      } else {
+        // Create new record
+        console.log(`Creating new ${type}`);
+        if (type === "team") {
+          await dispatch(addTeamAction(payload));
+          dispatch(getAllTeamAction());
+        } else if (type === "faq") {
+          await dispatch(addFaqAction(payload));
+          dispatch(getFaqAction());
+        } else if (type === "blog") {
+          await dispatch(addBlogAction(payload));
+          dispatch(getAllBlogsAction());
+        } else if (type === "testimonial") {
+          await dispatch(addTestimonialAction(payload));
+          dispatch(getAllTestimonialAction());
+        }
+      }
+  
+      resetFields(type);
+    } catch (error) {
+      console.error(`Error saving ${type}:`, error);
+      alert(`Failed to save ${type}. Please try again.`);
+    }
+  };
+
+
+  const handleDelete = async () => {
+    if (deleteType === "team") {
+      await dispatch(deleteTeamAction(deleteItemId));
+      dispatch(getAllTeamAction());
+    } else if (deleteType === "faq") {
+      await dispatch(deleteFaqAction(deleteItemId));
+      dispatch(getFaqAction());
+    } else if (deleteType === "blog") {
+      await dispatch(deleteBlogAction(deleteItemId));
+      dispatch(getAllBlogsAction());
+    } else if (deleteType === "testimonial") {
+      await dispatch(deleteTeamAction(deleteItemId));
+      dispatch(getAllTestimonialAction());
+    }
+    handleDeleteClose();
+  };
+
+  const resetFields = (type) => {
+    if (type === "team") {
+      setName("");
+      setRole("");
+      setImage(null);
+    } else if (type === "faq") {
+      setQuestion("");
+      setAnswer("");
+    } else if (type === "blog") {
+      setTitle("");
+      setBlogImage(null);
+      setDate("");
+      setAuthor("");
+    } else if (type === "testimonial") {
+      setFeedbackName("");
+      setDescription("");
+      setSubDescription("");
+      setCity("");
+      setFeedbackImage(null);
+    }
+  
+    setMode("add"); // Switch back to "add" mode
+    setEditItemId(null); // Clear the edit item ID
+  };
+  
+
   useEffect(() => {
     console.log("Blog Image State Updated:", blogImage);
   }, [blogImage]);
@@ -67,37 +217,37 @@ export default function SecondLandingManage() {
     }
   };
 
-  const handleTeamSave = async () => {
-    if (!name || !role || !image) {
-      alert("Please fill in all fields!");
-      return;
-    }
+  // const handleTeamSave = async () => {
+  //   if (!name || !role || !image) {
+  //     alert("Please fill in all fields!");
+  //     return;
+  //   }
 
-    try {
-      const payload = {
-        name,
-        role,
-        image,
-      };
+  //   try {
+  //     const payload = {
+  //       name,
+  //       role,
+  //       image,
+  //     };
 
-      console.log('payload', payload)
+  //     console.log('payload', payload)
 
-      const response = await dispatch(addTeamAction(payload));
-      console.log("Response from addAboutUsAction:", response);
+  //     const response = await dispatch(addTeamAction(payload));
+  //     console.log("Response from addAboutUsAction:", response);
 
-      if (response) {
-        setName("");
-        setRole("");
-        setImage(null);
-        dispatch(getAllTeamAction());
-      } else {
-        console.error("Unexpected response:", response);
-      }
-    } catch (error) {
-      console.error("Error saving About Us data:", error.message);
-      alert("Failed to save About Us data. Please try again.");
-    }
-  };
+  //     if (response) {
+  //       setName("");
+  //       setRole("");
+  //       setImage(null);
+  //       dispatch(getAllTeamAction());
+  //     } else {
+  //       console.error("Unexpected response:", response);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving About Us data:", error.message);
+  //     alert("Failed to save About Us data. Please try again.");
+  //   }
+  // };
 
   const handleFaqSave = async () => {
     if (!question || !answer ) {
@@ -286,8 +436,8 @@ export default function SecondLandingManage() {
 
                       <div className=" flex w-[100%] ">
                         <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
-                        onClick={handleTeamSave}>
-                          Submit
+                        onClick={() => handleSave("team")}>
+                          {mode === "edit" ? "Update" : "Submit"}
                         </div>
                       </div>
                     </div>
@@ -304,7 +454,8 @@ export default function SecondLandingManage() {
                         <p>{item?.role}</p>
                       </div>
                       <div className=" flex w-[100%] gap-[10px] ">
-                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
+                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
+                        onClick={() => handleEdit(item, "team")}>
                           <i
                             className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
                             // Populate input field when edit is clicked
@@ -312,7 +463,7 @@ export default function SecondLandingManage() {
                         </div>
                         <div
                           className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
-                          onClick={handleDeleteOpen}
+                          onClick={() => handleDeleteOpen(item?._id, "team")}
                         >
                           <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
                         </div>
@@ -352,8 +503,8 @@ export default function SecondLandingManage() {
 
                       <div className=" flex w-[100%] justify-end ">
                         <div className=" w-[130px] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
-                        onClick={handleFaqSave}>
-                          Submit
+                        onClick={() => handleSave("faq")}>
+                        {mode === "edit" ? "Update" : "Submit"}
                         </div>
                       </div>
                     </div>
@@ -361,15 +512,16 @@ export default function SecondLandingManage() {
                     <div key={index} className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[1.5px] border-[#a53d35]  w-[100%]">
                       <div className="m  flex w-[100%] justify-end">
                         <div className=" w-[100px]  gap-[16px] flex h-[45px] relative top-[-18px] right-[-17px] border-b-[1.5px] border-[#a53d35] border-l-[1.5px]  text-white text-[20px] flex justify-center items-center  font-Montserrat  rounded-bl-[6px]">
-                          <div className="  flex text-[20px] flex justify-center items-center  font-Montserrat  rounded-[6px]">
+                          <div className="  flex text-[20px] flex justify-center items-center  font-Montserrat  rounded-[6px]"
+                          onClick={() => handleEdit(item, "faq")}
+                          >
                             <i
                               className="fa-solid   text-[#10651b]  cursor-pointer  text-[19px] fa-pen-to-square"
-                              // Populate input field when edit is clicked
                             ></i>
                           </div>
                           <div
                             className=" ] flex text-[20px]  justify-center items-center  font-Montserrat  rounded-[6px] cursor-pointer"
-                            onClick={handleDeleteOpen}
+                            onClick={() => handleDeleteOpen(item?._id, "faq")}
                           >
                             <i className="text-[18px] mt-[1px] text-[#ff1414] cursor-pointer fa-solid fa-trash-can"></i>
                           </div>
@@ -451,8 +603,8 @@ export default function SecondLandingManage() {
 
                       <div className=" flex w-[100%] ">
                         <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
-                        onClick={handleBlogSave}>
-                          Submit
+                         onClick={() => handleSave("blog")}>
+                           {mode === "edit" ? "Update" : "Submit"}
                         </div>
                       </div>
                     </div>
@@ -479,7 +631,8 @@ export default function SecondLandingManage() {
                       </div>
 
                       <div className=" flex w-[100%] gap-[10px] ">
-                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
+                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
+                        onClick={() => handleEdit(item, "blog")}>
                           <i
                             className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
                             // Populate input field when edit is clicked
@@ -487,7 +640,7 @@ export default function SecondLandingManage() {
                         </div>
                         <div
                           className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
-                          onClick={handleDeleteOpen}
+                          onClick={() => handleDeleteOpen(item?._id, "blog")}
                         >
                           <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
                         </div>
@@ -560,7 +713,7 @@ export default function SecondLandingManage() {
 
                       <div className=" flex w-[100%] ">
                         <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
-                        onClick={handleTestimonialSave}>
+                        onClick={() => handleSave("testimonial")}>
                           Submit
                         </div>
                       </div>
@@ -587,7 +740,8 @@ export default function SecondLandingManage() {
                       </div>
 
                       <div className=" flex w-[100%] gap-[10px] ">
-                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
+                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
+                        onClick={() => handleEdit(item, "testimonial")}>
                           <i
                             className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
                             // Populate input field when edit is clicked
@@ -595,7 +749,7 @@ export default function SecondLandingManage() {
                         </div>
                         <div
                           className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
-                          onClick={handleDeleteOpen}
+                          onClick={() => handleDeleteOpen(item?._id, "testimonial")}
                         >
                           <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
                         </div>
@@ -625,7 +779,7 @@ export default function SecondLandingManage() {
                     <div className="absolute bottom-0 flex w-[100%]">
                       <div
                         className="w-[50%] cursor-pointer flex justify-center items-center py-[10px]  bg-[red] rounded-bl-[10px] text-[#fff] font-[600] font-Poppins text-[20px]"
-                        onClick={handleDeleteClose}
+                        onClick={handleDelete}
                       >
                         <p className=" font-Montserrat">Delete</p>
                       </div>
