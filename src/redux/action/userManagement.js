@@ -1,9 +1,10 @@
 import {
+  ApiDelete,
     ApiGet,
     ApiPostData,
     ApiPut,
 } from '../../helper/axios';
-import { GET_USERS,  GET_CONTACT_US, LOGIN_ADMIN  } from '../type';
+import { GET_USERS,  GET_CONTACT_US, LOGIN_ADMIN, DELETE_CONTACT_US  } from '../type';
 
 
 export const getAllUserAction = () => {
@@ -30,7 +31,7 @@ export const getAllUserAction = () => {
 
 export const getContactUsAction = () => {
   return (dispatch) => {
-      return ApiGet(`/admin/contact-us`)
+      return ApiGet(`/contact-us`)
     .then((res) => {
       console.log('res', res)
       if (res.contacts) {
@@ -86,3 +87,27 @@ export const updateUserAction = (userData) => async (dispatch) => {
     console.error("Error updating user:", error);
   }
 };
+
+export const deleteContactUsAction = (id) => {
+  return (dispatch) => {
+      return ApiDelete(`/admin/contact/${id}`)
+    .then((res) => {
+      console.log('res', res);
+      if (res.contacts) {
+        dispatch({
+          type: DELETE_CONTACT_US,
+          payload: res.contacts,
+        });
+        return res.contacts;
+      }
+    })
+    .catch((error) => {
+      dispatch({
+        type: DELETE_CONTACT_US,
+        payload: error,
+      });
+    });
+};
+};
+
+

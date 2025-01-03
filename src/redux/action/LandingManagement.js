@@ -4,12 +4,12 @@ import {
     ApiPost,
     ApiPut,
 } from '../../helper/axios';
-import { GET_TEXT_LINE, GET_SERVICE, GET_WHY_CHOOSE_US, ADD_ACHIEVEMENT, ADD_SERVICE, DELETE_CATEGORY, GET_ACHIEVEMENT, GET_ABOUT_US, ADD_TEXT_LINE, ADD_WHY_CHOOSE_US, ADD_ABOUT_US, UPDATE_TEXT_LINE, UPDATE_CATEGORY, DELETE_TEXT_LINE, DELETE_SUB_CATEGORY} from '../type';
+import { GET_TEXT_LINE, GET_SERVICE, GET_WHY_CHOOSE_US, ADD_ACHIEVEMENT, ADD_SERVICE, UPDATE_SERVICE, UPDATE_ACHIEVEMENT, DELETE_SERVICE, GET_ACHIEVEMENT, DELETE_ACHIEVEMENT, GET_ABOUT_US, ADD_TEXT_LINE, ADD_WHY_CHOOSE_US, ADD_ABOUT_US, UPDATE_TEXT_LINE, UPDATE_WHY_CHOOSE_US, DELETE_TEXT_LINE, DELETE_WHY_CHOOSE_US} from '../type';
 
 
 export const getHeroTextSliderAction = () => {
     return (dispatch) => {
-        return ApiGet(`/api/v1/admin/text-line`)
+        return ApiGet(`/admin/text-line`)
       .then((res) => {
         console.log('res', res);
         if (res.data) {
@@ -31,7 +31,7 @@ export const getHeroTextSliderAction = () => {
 
 export const getAboutUsAction = () => {
   return (dispatch) => {
-      return ApiGet(`/api/v1/admin/about-us`)
+      return ApiGet(`/admin/about-us`)
     .then((res) => {
       console.log('res', res);
       if (res.AboutUs) {
@@ -53,7 +53,7 @@ export const getAboutUsAction = () => {
 
 export const getWhyChoosUsAction = () => {
   return (dispatch) => {
-      return ApiGet(`/api/v1/admin/why-choose-us`)
+      return ApiGet(`/admin/why-choose-us`)
     .then((res) => {
       console.log('res', res)
       if (res.data) {
@@ -75,7 +75,7 @@ export const getWhyChoosUsAction = () => {
 
 export const getServiceAction = () => {
     return (dispatch) => {
-        return ApiGet(`/api/v1/admin/service`)
+        return ApiGet(`/admin/service`)
       .then((res) => {
         console.log('ressadvfb', res);
         if (res.data) {
@@ -98,7 +98,7 @@ export const getServiceAction = () => {
 
 export const getAchievementAction = () => {
   return (dispatch) => {
-      return ApiGet(`/api/v1/admin/achievement`)
+      return ApiGet(`/admin/achievement`)
     .then((res) => {
       console.log('resasdf', res);
       if (res.data) {
@@ -119,7 +119,7 @@ export const getAchievementAction = () => {
 };
 export const addHeroTextSliderAction = (formData) => {
   return (dispatch) => {
-      return ApiPost(`/api/v1/admin/text-line`, formData)
+      return ApiPost(`/admin/text-line`, formData)
     .then((res) => {
       console.log('res', res);
       if (res.data) {
@@ -142,7 +142,7 @@ export const addHeroTextSliderAction = (formData) => {
 
 export const addAboutUsAction = (formData) => {
     return (dispatch) => {
-        return ApiPost(`/api/v1/admin/about-us`, formData)
+        return ApiPost(`/admin/about-us`, formData)
       .then((res) => {
         console.log('resasdfghjk', res);
         if (res.data.AboutUs) {
@@ -164,7 +164,7 @@ export const addAboutUsAction = (formData) => {
 
 export const addWhyChooseUsAction = (formData) => {
     return (dispatch) => {
-        return ApiPost(`/api/v1/admin/why-choose-us`,formData)
+        return ApiPost(`/admin/why-choose-us`,formData)
       .then((res) => {
         console.log('ressss', res);
         if (res.data.data) {
@@ -186,7 +186,7 @@ export const addWhyChooseUsAction = (formData) => {
 
 export const addServiceAction = (formData) => {
   return (dispatch) => {
-      return ApiPost(`/api/v1/admin/service`,formData)
+      return ApiPost(`/admin/service`,formData)
     .then((res) => {
       console.log('ressss', res);
       if (res.data.data) {
@@ -208,7 +208,7 @@ export const addServiceAction = (formData) => {
 
 export const addAchievementAction = (formData) => {
   return (dispatch) => {
-      return ApiPost(`/api/v1/admin/achievement`,formData)
+      return ApiPost(`/admin/achievement`,formData)
     .then((res) => {
       console.log('ressss', res);
       if (res.data.data) {
@@ -230,7 +230,7 @@ export const addAchievementAction = (formData) => {
 
 export const updateHeroTextLineAction = (textId, formData) => {
     return (dispatch) => {
-        return ApiPut(`/api/v1/admin/text-line/${textId}`, formData)
+        return ApiPut(`/admin/text-line/${textId}`, formData)
       .then((res) => {
         console.log('res', res);
         if (res.DATA) {
@@ -250,31 +250,75 @@ export const updateHeroTextLineAction = (textId, formData) => {
   };
 };
 
-export const updateCategoryAction = (categoryId, updateName) => {
+export const updateWhyChooseUsAction = (id,formData) => {
     return (dispatch) => {
-        return ApiPut(`/admin/category/${categoryId}`, {name: updateName})
+        return ApiPut(`/admin/why-choose-us/${id}`, formData)
       .then((res) => {
         console.log('res', res);
-        if (res.category) {
+        if (res.data) {
           dispatch({
-            type: UPDATE_CATEGORY,
-            payload: res.category,
+            type: UPDATE_WHY_CHOOSE_US,
+            payload: res.data,
           });
-          return res.category;
+          return res.data;
         }
       })
       .catch((error) => {
         dispatch({
-          type: UPDATE_CATEGORY,
+          type: UPDATE_WHY_CHOOSE_US,
           payload: error,
         });
       });
   };
 };
 
+export const updateServiceAction = (id,formData) => {
+  return (dispatch) => {
+      return ApiPut(`/admin/service/${id}`, formData)
+    .then((res) => {
+      console.log('res', res);
+      if (res.data) {
+        dispatch({
+          type: UPDATE_SERVICE,
+          payload: res.data,
+        });
+        return res.data;
+      }
+    })
+    .catch((error) => {
+      dispatch({
+        type: UPDATE_SERVICE,
+        payload: error,
+      });
+    });
+};
+};
+
+export const updateAchievementAction = (id,formData) => {
+  return (dispatch) => {
+      return ApiPut(`/admin/service/${id}`, formData)
+    .then((res) => {
+      console.log('res', res);
+      if (res.data) {
+        dispatch({
+          type: UPDATE_ACHIEVEMENT,
+          payload: res.data,
+        });
+        return res.data;
+      }
+    })
+    .catch((error) => {
+      dispatch({
+        type: UPDATE_ACHIEVEMENT,
+        payload: error,
+      });
+    });
+};
+};
+
 export const deleteHeroTextLineAction = (textId) => {
     return (dispatch) => {
-        return ApiDelete(`/api/v1/admin/text-line/${textId}`)
+        return ApiDelete(`/admin/text-line/${textId}`)
       .then((res) => {
         console.log('res', res);
         if (res.data) {
@@ -294,48 +338,71 @@ export const deleteHeroTextLineAction = (textId) => {
   };
 };
 
-export const deleteSubCategoryAction = (categoryId) => {
+export const deleteWhyChooseUsAction = (id) => {
     return (dispatch) => {
-        return ApiPut(`/admin/subcategory/${categoryId}`)
+        return ApiPut(`/admin/why-choose-us/${id}`)
       .then((res) => {
         console.log('res', res);
-        if (res.category) {
+        if (res.data) {
           dispatch({
-            type: DELETE_SUB_CATEGORY,
-            payload: res.category,
+            type: DELETE_WHY_CHOOSE_US,
+            payload: res.data,
           });
-          return res.category;
+          return res.data;
         }
       })
       .catch((error) => {
         dispatch({
-          type: DELETE_SUB_CATEGORY,
+          type: DELETE_WHY_CHOOSE_US,
           payload: error,
         });
       });
   };
 };
 
-export const deleteCategoryAction = (categoryId) => {
+export const deleteServiceAction = (id) => {
   return (dispatch) => {
-      return ApiDelete(`/admin/category/${categoryId}`)
+      return ApiDelete(`/admin/service/${id}`)
     .then((res) => {
       console.log('Api delete category', res);
-      if (res.category) {
+      if (res.data) {
         dispatch({
-          type: DELETE_CATEGORY,
-          payload: res.category,
+          type: DELETE_SERVICE,
+          payload: res.data,
         });
-        return res.category;
+        return res.data;
       }
     })
     .catch((error) => {
       dispatch({
-        type: DELETE_CATEGORY,
+        type: DELETE_SERVICE,
         payload: error,
       });
     });
 };
 };
+
+export const deleteAchievementAction = (id) => {
+  return (dispatch) => {
+      return ApiDelete(`/admin/achievement/${id}`)
+    .then((res) => {
+      console.log('Api delete achievement', res);
+      if (res.data) {
+        dispatch({
+          type: DELETE_ACHIEVEMENT,
+          payload: res.data,
+        });
+        return res.data;
+      }
+    })
+    .catch((error) => {
+      dispatch({
+        type: DELETE_ACHIEVEMENT,
+        payload: error,
+      });
+    });
+};
+};
+
 
 

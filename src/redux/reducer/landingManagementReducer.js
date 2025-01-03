@@ -1,21 +1,25 @@
-import { RESET_GLOBAL_STATE, GET_TEXT_LINE, DELETE_CATEGORY, ADD_ACHIEVEMENT, GET_ACHIEVEMENT, ADD_SERVICE, GET_SERVICE, ADD_TEXT_LINE, GET_ABOUT_US, GET_WHY_CHOOSE_US, GET_SUB_CATEGORY, ADD_WHY_CHOOSE_US, ADD_ABOUT_US, UPDATE_CATEGORY, UPDATE_TEXT_LINE, DELETE_TEXT_LINE, DELETE_SUB_CATEGORY } from '../type';
+import { RESET_GLOBAL_STATE, GET_TEXT_LINE, DELETE_SERVICE, ADD_ACHIEVEMENT, UPDATE_WHY_CHOOSE_US, UPDATE_ACHIEVEMENT, GET_ACHIEVEMENT, DELETE_ACHIEVEMENT,
+     ADD_SERVICE, GET_SERVICE, ADD_TEXT_LINE, GET_ABOUT_US, GET_WHY_CHOOSE_US, ADD_WHY_CHOOSE_US, ADD_ABOUT_US, UPDATE_SERVICE, UPDATE_TEXT_LINE, DELETE_TEXT_LINE, DELETE_WHY_CHOOSE_US } from '../type';
 
 const initialState = {
     getTextLine: [],
     getService: [],
     addWhyChooseUs: [],
     addAboutUs: [],
-    updateCategory: [],
+    updateService: [],
     updateTextLine: [],
     deleteTextLine: null,
-    deleteSubCategory: [],
+    deleteWhyChooseUs: [],
     getAchevement: [],
     addTextLine: [],
     getAboutUs: [],
     getWhyChooseUs: [],
-    deleteCategory: null,
+    deleteService: null,
     addService: [],
     addAchievement: [],
+    updateWhyChooseUs: [],
+    updateAchievement: [],
+    deleteAchievement: [],
 };
 
 
@@ -26,7 +30,7 @@ const landingManagementReducer = (state = initialState, action) => {
             ...state,
             getTextLine: action.payload,
         };
-        case GET_SUB_CATEGORY: 
+        case GET_SERVICE: 
         return {
             ...state,
             getService: action.payload,
@@ -51,14 +55,10 @@ const landingManagementReducer = (state = initialState, action) => {
                 ...state,
                 addAboutUs: action.payload,
             };
-        case UPDATE_CATEGORY: 
+        case UPDATE_SERVICE: 
         return {
             ...state,
-            getAllCategory: state.getAllCategory.map((category) =>
-                category._id === action.payload.categoryId
-                  ? { ...category, name: action.payload.name }
-                  : category
-              ),
+            updateService: action.payload,
             };
         case UPDATE_TEXT_LINE: 
         return {
@@ -73,10 +73,10 @@ const landingManagementReducer = (state = initialState, action) => {
                   ),
                   deleteTextLine: null,
             };
-        case DELETE_SUB_CATEGORY:
+        case DELETE_WHY_CHOOSE_US:
             return {
                 ...state,
-                deleteSubCategory: action.payload,
+                deleteWhyChooseUs: action.payload,
             };
         case GET_ABOUT_US: 
         return {
@@ -88,28 +88,36 @@ const landingManagementReducer = (state = initialState, action) => {
                 ...state,
                 getWhyChooseUs: action.payload,
             };
-        case DELETE_CATEGORY:
+        case DELETE_SERVICE:
             return {
                 ...state,
-                getAllCategory: state.getAllCategory.filter(
-                    (category) => category._id !== action.payload
-                ),  
+                deleteService: action.payload, 
             };
         case ADD_SERVICE:
             return {
                 ...state,
                 addService: action.payload,
             };
-        case GET_SERVICE:
-            return {
-                ...state,
-                getService: action.payload,
-            };
         case ADD_ACHIEVEMENT:
             return {
                 ...state,
                 addAchievement: action.payload,
             };
+        case UPDATE_WHY_CHOOSE_US: 
+        return {
+            ...state,
+            updateWhyChooseUs: action.payload,
+        };
+        case UPDATE_ACHIEVEMENT:
+            return {
+                ...state,
+                updateAchievement: action.payload,
+            };
+        case DELETE_ACHIEVEMENT:
+        return {
+            ...state,
+            deleteAchievement: action.payload,
+        };
         case RESET_GLOBAL_STATE:
             return initialState;
         default:

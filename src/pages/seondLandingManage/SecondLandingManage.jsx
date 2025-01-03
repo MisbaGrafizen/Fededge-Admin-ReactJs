@@ -249,35 +249,35 @@ export default function SecondLandingManage() {
   //   }
   // };
 
-  const handleFaqSave = async () => {
-    if (!question || !answer ) {
-      alert("Please fill in all fields!");
-      return;
-    }
+  // const handleFaqSave = async () => {
+  //   if (!question || !answer ) {
+  //     alert("Please fill in all fields!");
+  //     return;
+  //   }
 
-    try {
-      const payload = {
-        question,
-        answer,
-      };
+  //   try {
+  //     const payload = {
+  //       question,
+  //       answer,
+  //     };
 
-      console.log('payload', payload)
+  //     console.log('payload', payload)
 
-      const response = await dispatch(addFaqAction(payload));
-      console.log("Response from addAboutUsAction:", response);
+  //     const response = await dispatch(addFaqAction(payload));
+  //     console.log("Response from addAboutUsAction:", response);
 
-      if (response) {
-        setQuestion("");
-        setAnswer("");
-        dispatch(getFaqAction());
-      } else {
-        console.error("Unexpected response:", response);
-      }
-    } catch (error) {
-      console.error("Error saving About Us data:", error.message);
-      alert("Failed to save About Us data. Please try again.");
-    }
-  };
+  //     if (response) {
+  //       setQuestion("");
+  //       setAnswer("");
+  //       dispatch(getFaqAction());
+  //     } else {
+  //       console.error("Unexpected response:", response);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving About Us data:", error.message);
+  //     alert("Failed to save About Us data. Please try again.");
+  //   }
+  // };
  
   const handleBlogImageChange = async (e) => {
     const file = e.target.files[0];
@@ -287,39 +287,39 @@ export default function SecondLandingManage() {
     }
   };
 
-  const handleBlogSave = async () => {
-    if (!title || !blogImage || !author || !date) {
-      alert("Please fill in all fields!");
-      return;
-    }
+  // const handleBlogSave = async () => {
+  //   if (!title || !blogImage || !author || !date) {
+  //     alert("Please fill in all fields!");
+  //     return;
+  //   }
 
-    try {
-      const payload = {
-        title,
-        author,
-        image: blogImage,
-        date,
-      };
+  //   try {
+  //     const payload = {
+  //       title,
+  //       author,
+  //       image: blogImage,
+  //       date,
+  //     };
 
-      console.log('payload', payload)
+  //     console.log('payload', payload)
 
-      const response = await dispatch(addBlogAction(payload));
-      console.log("Response from addAboutUsAction:", response);
+  //     const response = await dispatch(addBlogAction(payload));
+  //     console.log("Response from addAboutUsAction:", response);
 
-      if (response) {
-        setTitle("");
-        setAuthor("");
-        setDate("");
-        setBlogImage(null);
-        dispatch(getAllBlogsAction());
-      } else {
-        console.error("Unexpected response:", response);
-      }
-    } catch (error) {
-      console.error("Error saving About Us data:", error.message);
-      alert("Failed to save About Us data. Please try again.");
-    }
-  };
+  //     if (response) {
+  //       setTitle("");
+  //       setAuthor("");
+  //       setDate("");
+  //       setBlogImage(null);
+  //       dispatch(getAllBlogsAction());
+  //     } else {
+  //       console.error("Unexpected response:", response);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving About Us data:", error.message);
+  //     alert("Failed to save About Us data. Please try again.");
+  //   }
+  // };
 
   const handleTestimonialImageChange = async (e) => {
     const file = e.target.files[0];
@@ -329,41 +329,41 @@ export default function SecondLandingManage() {
     }
   };
 
-  const handleTestimonialSave = async () => {
-    if (!feedbackName || !feedbackImage || !description  ||!city) {
-      alert("Please fill in all fields!");
-      return;
-    }
+  // const handleTestimonialSave = async () => {
+  //   if (!feedbackName || !feedbackImage || !description  ||!city) {
+  //     alert("Please fill in all fields!");
+  //     return;
+  //   }
 
-    try {
-      const payload = {
-        name: feedbackName,
-        description,
-        image: feedbackImage,
-        subDescription,
-        city,
-      };
+  //   try {
+  //     const payload = {
+  //       name: feedbackName,
+  //       description,
+  //       image: feedbackImage,
+  //       subDescription,
+  //       city,
+  //     };
 
-      console.log('payload', payload)
+  //     console.log('payload', payload)
 
-      const response = await dispatch(addTestimonialAction(payload));
-      console.log("Response from addAboutUsAction:", response);
+  //     const response = await dispatch(addTestimonialAction(payload));
+  //     console.log("Response from addAboutUsAction:", response);
 
-      if (response) {
-        setFeedbackName("");
-        setDescription("");
-        setSubDescription("");
-        setCity("");
-        setFeedbackImage(null);
-        dispatch(getAllTestimonialAction());
-      } else {
-        console.error("Unexpected response:", response);
-      }
-    } catch (error) {
-      console.error("Error saving About Us data:", error.message);
-      alert("Failed to save About Us data. Please try again.");
-    }
-  };
+  //     if (response) {
+  //       setFeedbackName("");
+  //       setDescription("");
+  //       setSubDescription("");
+  //       setCity("");
+  //       setFeedbackImage(null);
+  //       dispatch(getAllTestimonialAction());
+  //     } else {
+  //       console.error("Unexpected response:", response);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving About Us data:", error.message);
+  //     alert("Failed to save About Us data. Please try again.");
+  //   }
+  // };
 
  
   return (

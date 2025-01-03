@@ -1,21 +1,23 @@
 //Product Management
 export const GET_TEXT_LINE = "GET_TEXT_LINE";
-export const GET_SUB_CATEGORY = "GET_SUB_CATEGORY";
 export const ADD_WHY_CHOOSE_US = "ADD_WHY_CHOOSE_US";
 export const ADD_ABOUT_US = "ADD_ABOUT_US";
-export const UPDATE_CATEGORY = "UPDATE_CATEGORY";
+export const UPDATE_WHY_CHOOSE_US = "UPDATE_WHY_CHOOSE_US";
 export const UPDATE_TEXT_LINE = "UPDATE_TEXT_LINE";
 export const DELETE_TEXT_LINE = "DELETE_TEXT_LINE";
-export const DELETE_SUB_CATEGORY = "DELETE_SUB_CATEGORY";
+export const DELETE_WHY_CHOOSE_US = "DELETE_WHY_CHOOSE_US";
 export const RESET_GLOBAL_STATE = "RESET_GLOBAL_STATE";
 export const GET_ACHIEVEMENT = "GET_ACHIEVEMENT";
 export const ADD_TEXT_LINE = "ADD_TEXT_LINE";
 export const GET_ABOUT_US = "GET_ABOUT_US";
 export const GET_WHY_CHOOSE_US = "GET_WHY_CHOOSE_US";
-export const DELETE_CATEGORY = "DELETE_CATEGORY";
+export const DELETE_SERVICE = "DELETE_SERVICE";
 export const ADD_SERVICE = "ADD_SERVICE";
 export const GET_SERVICE = "GET_SERVICE";
 export const ADD_ACHIEVEMENT = "ADD_ACHIEVEMENT";
+export const UPDATE_ACHIEVEMENT = "UPDATE_ACHIEVEMENT";
+export const UPDATE_SERVICE = "UPDATE_SERVICE";
+export const DELETE_ACHIEVEMENT = "DELETE_ACHIEVEMENT";
 
 
 //General Management
@@ -50,7 +52,8 @@ export const DELETE_TESTIMONIAL = "DELETE_TESTIMONIAL";
 export const GET_USERS = "GET_USERS";
 export const GET_CONTACT_US = "GET_CONTACT_US";
 export const LOGIN_ADMIN = "LOGIN_ADMIN";
-export const UPDATE_USER = "UPDATE_USER"
+export const UPDATE_USER = "UPDATE_USER";
+export const DELETE_CONTACT_US = "DELETE_CONTACT_US";
 
 //Support Management
 export const GET_WARRANTIES = "GET_WARRANTIES";

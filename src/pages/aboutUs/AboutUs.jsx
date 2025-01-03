@@ -6,7 +6,7 @@ import {
   ModalContent,
 } from "@nextui-org/react";
 import { useDispatch, useSelector } from "react-redux";
-import { addAboutUsAction, addAchievementAction, addHeroTextSliderAction, addServiceAction, addWhyChooseUsAction, getAboutUsAction, getAchievementAction, getHeroTextSliderAction, getServiceAction, getWhyChoosUsAction, updateHeroTextLineAction } from "../../redux/action/LandingManagement";
+import { addAboutUsAction, addAchievementAction, addHeroTextSliderAction, addServiceAction, addWhyChooseUsAction, deleteAchievementAction, deleteHeroTextLineAction, deleteServiceAction, deleteWhyChooseUsAction, getAboutUsAction, getAchievementAction, getHeroTextSliderAction, getServiceAction, getWhyChoosUsAction, updateAchievementAction, updateHeroTextLineAction, updateServiceAction, updateWhyChooseUsAction } from "../../redux/action/LandingManagement";
 import cloudinaryUpload from '../../helper/cloudinaryUpload';
 
 
@@ -19,12 +19,6 @@ export default function AboutUs() {
   const [data, setData] = useState();
   const [isaboutModalOpen, setAboutModalOpen] = useState(false);
   const dispatch = useDispatch();
-  const [formData, setFormData] = useState({
-    title: '',
-    image1: '',
-    image2: '',
-    description: '',
-  });
 
   const lineData = useSelector((state) => state.landing.getTextLine);
   const aboutUsData = useSelector((state) => state.landing.getAboutUs);
@@ -60,35 +54,19 @@ export default function AboutUs() {
   const [counting, setCounting] = useState();
   const [name, setName] = useState();
 
+  const [deleteItemId, setDeleteItemId] = useState(null);
+  const [deleteType, setDeleteType] = useState("");
+  const [editItemId, setEditItemId] = useState(null);
+  const [mode, setMode] = useState("add");
 
-  const handleEdit = () => {
-    setInputValue(data);
-  };
 
-  const handleInputChange = (e) => {
-    setInputValue(e.target.value);
-  };
-
-  const handleSave = () => {
-    setData(inputValue);
-  };
-
-  const handleDeleteOpen = () => {
-    setDeleteModal(true);
-  };
-
-  const handleDeleteClose = () => {
-    setDeleteModal(false);
-  };
   const openAboutModal = () => {
-    // If we already have aboutData, pre-fill the fields for editing
     if (aboutData) {
       setAboutTitle(aboutData.title || "");
       setAboutContent(aboutData.content || "");
       setImage1(aboutData.image1 || null);
       setImage2(aboutData.image2 || null);
     } else {
-      // Otherwise, clear the fields for adding
       setAboutTitle("");
       setAboutContent("");
       setImage1(null);
@@ -110,19 +88,149 @@ export default function AboutUs() {
 
   //Integration==========================================================================================================================================================================
 
-  const handleCreateText = async (e) => {
-    e.preventDefault();
-    if (!text.trim()) return;
-    await dispatch(addHeroTextSliderAction({ text }));
-    setText('');
+
+  const handleDeleteOpen = (id, type) => {
+    setDeleteItemId(id);
+    setDeleteType(type);
+    setDeleteModal(true);
   };
 
-  const handleEditText = async (e) => {
-    e.preventDefault();
-    if (!editText.text.trim()) return;
-    await dispatch(updateHeroTextLineAction(editText));
-    setEditText({ id: null, text: "" });
+  const handleDeleteClose = () => {
+    setDeleteModal(false);
+    setDeleteItemId(null);
+    setDeleteType("");
   };
+
+  const handleEdit = (item, type) => {
+    setMode("edit");
+    setEditItemId(item._id); // Set the ID of the item to be updated
+
+    if (type === "text") {
+      setText(item.text);
+    } else if (type === "whyUs") {
+      setTitle(item.title);
+      setDescription(item.text);
+      setImage(item.icon)
+    } else if (type === "service") {
+      setServiceTitle(item.title);
+      setServiceDescription(item.description);
+      setIcon(item.icon);
+    } else if (type === "achievement") {
+      setCounting(item.counting);
+      setName(item.name);
+    }
+  };
+
+  const handleSave = async (type) => {
+    let id = editItemId;
+    if (typeof id === "object") {
+      id = id?._id || id?.id || id?.toString();
+    }
+
+    const payload = {};
+    if (type === "text") {
+      payload.text = text;
+    } else if (type === "whyUs") {
+      payload.title = title;
+      payload.text = description;
+      payload.icon = image;
+    } else if (type === "service") {
+      payload.title = serviceTitle;
+      payload.icon = icon;
+      payload.description = serviceDescription;
+    } else if (type === "achievement") {
+      payload.name = name;
+      payload.counting = counting;
+    }
+
+    try {
+      if (id) {
+        // Update existing record
+        console.log(`Updating ${type} with ID: ${id}`);
+        if (type === "text") {
+          await dispatch(updateHeroTextLineAction(id, payload));
+          dispatch(getHeroTextSliderAction());
+        } else if (type === "whyUs") {
+          await dispatch(updateWhyChooseUsAction(id, payload));
+          dispatch(getWhyChoosUsAction());
+        } else if (type === "service") {
+          await dispatch(updateServiceAction(id, payload));
+          dispatch(getServiceAction());
+        } else if (type === "achievement") {
+          await dispatch(updateAchievementAction(id, payload));
+          dispatch(getAchievementAction());
+        }
+      } else {
+        // Create new record
+        console.log(`Creating new ${type}`);
+        if (type === "text") {
+          await dispatch(addHeroTextSliderAction(payload));
+          dispatch(getHeroTextSliderAction());
+        } else if (type === "whyUs") {
+          await dispatch(addWhyChooseUsAction(payload));
+          dispatch(getWhyChoosUsAction());
+        } else if (type === "service") {
+          await dispatch(addServiceAction(payload));
+          handleServiceClose();
+          dispatch(getServiceAction());
+        } else if (type === "achievement") {
+          await dispatch(addAchievementAction(payload));
+          dispatch(getAchievementAction());
+        }
+      }
+
+      resetFields(type);
+    } catch (error) {
+      console.error(`Error saving ${type}:`, error);
+      alert(`Failed to save ${type}. Please try again.`);
+    }
+  };
+
+
+  const handleDelete = async () => {
+    if (deleteType === "text") {
+      await dispatch(deleteHeroTextLineAction(deleteItemId));
+      dispatch(getHeroTextSliderAction());
+    } else if (deleteType === "whyUs") {
+      await dispatch(deleteWhyChooseUsAction(deleteItemId));
+      dispatch(getWhyChoosUsAction());
+    } else if (deleteType === "service") {
+      await dispatch(deleteServiceAction(deleteItemId));
+      dispatch(getServiceAction());
+    } else if (deleteType === "achievement") {
+      await dispatch(deleteAchievementAction(deleteItemId));
+      dispatch(getAchievementAction());
+    }
+    handleDeleteClose();
+  };
+
+  const resetFields = (type) => {
+    if (type === "text") {
+      setText("");
+    } else if (type === "whyUs") {
+      setTitle("");
+      setDescription("");
+      setImage(null);
+    } else if (type === "service") {
+      setServiceTitle("");
+      setIcon(null);
+      setServiceDescription("");
+    } else if (type === "achievement") {
+      setCounting("");
+      setName("");
+    }
+
+    setMode("add"); // Switch back to "add" mode
+    setEditItemId(null); // Clear the edit item ID
+  };
+
+
+  // const handleCreateText = async (e) => {
+  //   e.preventDefault();
+  //   if (!text.trim()) return;
+  //   await dispatch(addHeroTextSliderAction({ text }));
+  //   setText('');
+  // };
 
   const handleImage2Change = async (e) => {
     const file = e.target.files[0];
@@ -168,6 +276,8 @@ export default function AboutUs() {
       } else {
         console.error("Unexpected response:", response);
       }
+
+
     } catch (error) {
       console.error("Error saving About Us data:", error.message);
       alert("Failed to save About Us data. Please try again.");
@@ -182,37 +292,37 @@ export default function AboutUs() {
     }
   };
 
-  const handleWhyChooseUsSave = async () => {
-    if (!title || !description || !image) {
-      alert("Please fill in all fields!");
-      return;
-    }
+  // const handleWhyChooseUsSave = async () => {
+  //   if (!title || !description || !image) {
+  //     alert("Please fill in all fields!");
+  //     return;
+  //   }
 
-    try {
-      const payload = {
-        title: title,
-        text: description,
-        icon: image,
-      };
+  //   try {
+  //     const payload = {
+  //       title: title,
+  //       text: description,
+  //       icon: image,
+  //     };
 
-      console.log('payload', payload)
+  //     console.log('payload', payload)
 
-      const response = await dispatch(addWhyChooseUsAction(payload));
-      console.log("Response from addAboutUsAction:", response);
+  //     const response = await dispatch(addWhyChooseUsAction(payload));
+  //     console.log("Response from addAboutUsAction:", response);
 
-      if (response) {
-        setTitle("");
-        setDescription("");
-        setImage(null);
-        dispatch(getWhyChoosUsAction());
-      } else {
-        console.error("Unexpected response:", response);
-      }
-    } catch (error) {
-      console.error("Error saving About Us data:", error.message);
-      alert("Failed to save About Us data. Please try again.");
-    }
-  };
+  //     if (response) {
+  //       setTitle("");
+  //       setDescription("");
+  //       setImage(null);
+  //       dispatch(getWhyChoosUsAction());
+  //     } else {
+  //       console.error("Unexpected response:", response);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving About Us data:", error.message);
+  //     alert("Failed to save About Us data. Please try again.");
+  //   }
+  // };
   const handleIconChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -221,70 +331,69 @@ export default function AboutUs() {
     }
   };
 
-  const handleServiceSave = async () => {
-    if (!serviceTitle || !serviceDescription || !icon) {
-      alert("Please fill in all fields!");
-      return;
-    }
+  // const handleServiceSave = async () => {
+  //   if (!serviceTitle || !serviceDescription || !icon) {
+  //     alert("Please fill in all fields!");
+  //     return;
+  //   }
 
-    try {
-      const payload = {
-        title: serviceTitle,
-        description: serviceDescription,
-        icon,
-      };
+  //   try {
+  //     const payload = {
+  //       title: serviceTitle,
+  //       description: serviceDescription,
+  //       icon,
+  //     };
 
-      console.log('payload', payload)
+  //     console.log('payload', payload)
 
-      const response = await dispatch(addServiceAction(payload));
-      console.log("Response from addAboutUsAction:", response);
+  //     const response = await dispatch(addServiceAction(payload));
+  //     console.log("Response from addAboutUsAction:", response);
 
-      if (response) {
-        setServiceTitle("");
-        setServiceDescription("");
-        setIcon(null);
-        handleServiceClose();
-        dispatch(getServiceAction());
-      } else {
-        console.error("Unexpected response:", response);
-      }
-    } catch (error) {
-      console.error("Error saving About Us data:", error.message);
-      alert("Failed to save About Us data. Please try again.");
-    }
-  };
+  //     if (response) {
+  //       setServiceTitle("");
+  //       setServiceDescription("");
+  //       setIcon(null);
+  //       handleServiceClose();
+  //       dispatch(getServiceAction());
+  //     } else {
+  //       console.error("Unexpected response:", response);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving About Us data:", error.message);
+  //     alert("Failed to save About Us data. Please try again.");
+  //   }
+  // };
 
-  const handleAchievementSave = async () => {
-    if (!counting || !name) {
-      alert("Please fill in all fields!");
-      return;
-    }
+  // const handleAchievementSave = async () => {
+  //   if (!counting || !name) {
+  //     alert("Please fill in all fields!");
+  //     return;
+  //   }
 
-    try {
-      const payload = {
-        counting,
-        name,
-      };
+  //   try {
+  //     const payload = {
+  //       counting,
+  //       name,
+  //     };
 
-      console.log('payload', payload)
+  //     console.log('payload', payload)
 
-      const response = await dispatch(addAchievementAction(payload));
-      console.log("Response from addAboutUsAction:", response);
+  //     const response = await dispatch(addAchievementAction(payload));
+  //     console.log("Response from addAboutUsAction:", response);
 
-      if (response) {
-        setCounting("");
-        setName("");
-        dispatch(getAchievementAction());
-      } else {
-        console.error("Unexpected response:", response);
-      }
-    } catch (error) {
-      console.error("Error saving About Us data:", error.message);
-      alert("Failed to save About Us data. Please try again.");
-    }
-  };
+  //     if (response) {
+  //       setCounting("");
+  //       setName("");
+  //       dispatch(getAchievementAction());
+  //     } else {
+  //       console.error("Unexpected response:", response);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving About Us data:", error.message);
+  //     alert("Failed to save About Us data. Please try again.");
+  //   }
+  // };
 
-  console.log('achievementData', achievementData)
 
 
   return (
@@ -321,9 +430,9 @@ export default function AboutUs() {
                     </div>
                     <div
                       className="font-[600] text-[20px] text-center justify-center flex text-[#fff] bg-[#177e24] items-center border-[1.5px] w-[130px] h-[50px] border-[#7a6c6c] rounded-[9px]"
-                      onClick={handleCreateText} // Save when clicked
+                      onClick={() => handleSave("text")}
                     >
-                      <p>Save</p>
+                      <p> {mode === "edit" ? "Update" : "Submit"}</p>
                     </div>
                   </div>
                   <div className="flex gap-[10px] mt-[10px] items-center">
@@ -335,12 +444,12 @@ export default function AboutUs() {
                         <div className="flex justify-center items-center gap-[15px] text-center py-2">
                           <i
                             className="fa-solid  cursor-pointer  text-[#000000] text-[19px] fa-pen-to-square"
-                            onClick={handleEdit}
+                            onClick={() => handleEdit(item, "text")}
                           ></i>
                           <i
                             className="text-[18px] mt-[1px] text-[#ff0b0b] cursor-pointer fa-solid fa-trash-can"
                             onClick={() =>
-                              alert("Delete action will be implemented.")
+                             handleDeleteOpen(item?.id, "text")
                             }
                           ></i>
                         </div>
@@ -370,7 +479,7 @@ export default function AboutUs() {
                             )}
                           </div>
 
-                          {/* Second image */}
+                          
                           <div className="h-[200px] w-[280px] overflow-hidden border-[#a53d35] border-[1.8px] justify-center items-center rounded-[8px] flex">
                             {item?.image2 ? (
                               <img
@@ -423,7 +532,7 @@ export default function AboutUs() {
                     <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
                       <div className=" flex w-[100%] rounded-[6px] border-[#a53d35] items-center border-[1.5px] justify-center  h-[200px]"
                         onClick={() =>
-                          document.getElementById("imagePicker1").click()
+                          document.getElementById("imagePicker4").click()
                         }
                       >
                         {image ? (
@@ -438,7 +547,7 @@ export default function AboutUs() {
                         <input
                           type="file"
                           name="icon"
-                          id="imagePicker1"
+                          id="imagePicker4"
                           style={{ display: "none" }}
                           onChange={handleImageChange}
                         />
@@ -466,8 +575,8 @@ export default function AboutUs() {
                       </div>
                       <div className=" flex w-[100%] ">
                         <div className=" w-[100%] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
-                          onClick={handleWhyChooseUsSave}>
-                          Submit
+                          onClick={() => handleSave("whyUs")}>
+                           {mode === "edit" ? "Update" : "Submit"}
                         </div>
                       </div>
                     </div>
@@ -484,7 +593,8 @@ export default function AboutUs() {
                           <p>{item?.text}</p>
                         </div>
                         <div className=" flex w-[100%] gap-[10px] ">
-                          <div className=" w-[100%] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
+                          <div className=" w-[100%] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
+                          onClick={() => handleEdit(item, "whyUs")}>
                             <i
                               className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
                             // Populate input field when edit is clicked
@@ -492,7 +602,7 @@ export default function AboutUs() {
                           </div>
                           <div
                             className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
-                            onClick={handleDeleteOpen}
+                            onClick={() => handleDeleteOpen(item?.id, "whyUs")}
                           >
                             <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
                           </div>
@@ -515,9 +625,9 @@ export default function AboutUs() {
                   <p>Add</p>
                 </div>
                 <div className="flex flex-wrap gap-[16px]">
-                {serviceData?.map((item, index) => (
-                  <div key={index} className="flex gap-[25px] w-[100] flex-wrap">
-                    {/* <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
+                  {serviceData?.map((item, index) => (
+                    <div key={index} className="flex gap-[25px] w-[100] flex-wrap">
+                      {/* <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
                       <div className=" flex w-[100%] rounded-[6px] border-[#a53d35] items-center border-[1.5px] justify-center  h-[200px]">
                         <i className="text-[39px] text-[#a53d35] fa-solid fa-plus"></i>
                       </div>
@@ -542,37 +652,38 @@ export default function AboutUs() {
                         </div>
                       </div>
                     </div> */}
-                    <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[400px]">
-                      <div className="flex gap-[10px] w-[100%]">
-                        <div className=" flex w-[120px] rounded-[6px] border-[#a53d35] items-center border-[1.5px] justify-center  h-[100px]">
-                          <img className=" w-[100%] h-[100%]" src={item?.icon} />
+                      <div className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[400px]">
+                        <div className="flex gap-[10px] w-[100%]">
+                          <div className=" flex w-[120px] rounded-[6px] border-[#a53d35] items-center border-[1.5px] justify-center  h-[100px]">
+                            <img className=" w-[100%] h-[100%]" src={item?.icon} />
+                          </div>
+
+                          <div className="border-[1.5px] w-[80%] h-[50px] border-[#a53d35] rounded-[7px]">
+                            <p>{item?.title}</p>
+                          </div>
                         </div>
 
-                        <div className="border-[1.5px] w-[80%] h-[50px] border-[#a53d35] rounded-[7px]">
-                          <p>{item?.title}</p>
+                        <div className="border-[1.5px] w-[100%] h-[120px] border-[#a53d35] p-[3px] rounded-[6px]">
+                          <p>{item?.description}</p>
                         </div>
-                      </div>
-
-                      <div className="border-[1.5px] w-[100%] h-[120px] border-[#a53d35] p-[3px] rounded-[6px]">
-                        <p>{item?.description}</p>
-                      </div>
-                      <div className=" flex w-[100%] gap-[10px] ">
-                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
-                          <i
-                            className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
-                          // Populate input field when edit is clicked
-                          ></i>
-                        </div>
-                        <div
-                          className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
-                          onClick={handleDeleteOpen}
-                        >
-                          <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
+                        <div className=" flex w-[100%] gap-[10px] ">
+                          <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
+                          onClick={() => handleEdit(item, "service")}>
+                            <i
+                              className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
+                            // Populate input field when edit is clicked
+                            ></i>
+                          </div>
+                          <div
+                            className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
+                            onClick={() => handleDeleteOpen(item?.id, "service")}
+                          >
+                            <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
                 </div>
               </div>
 
@@ -605,38 +716,39 @@ export default function AboutUs() {
                     </div>
                     <div className=" flex w-[100%] ">
                       <div className=" w-[100%] flex  cursor-pointer h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
-                      onClick={handleAchievementSave}>
+                        onClick={() => handleSave("achievement")}>
                         Submit
                       </div>
                     </div>
                   </div>
                   {achievementData?.map((item, index) => (
-                  <div key={index} className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
-                    <div className="border-[1.5px] w-[100%] h-[90px] border-[#a53d35]  flex justify-center items-center  rounded-[7px]">
-                      <p className=" text-[40px]  text-center font-Montserrat ">
-                        {item?.counting}
-                      </p>
-                    </div>
-                    <div className="border-[1.5px] w-[100%] h-[50px]  flex  items-center border-[#a53d35] p-[3px] rounded-[6px]">
-                      <p className=" text-[16px] px-[10px] font-Montserrat ">
-                        {item?.name}
-                      </p>
-                    </div>
-                    <div className=" flex w-[100%] gap-[10px] ">
-                      <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]">
-                        <i
-                          className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
-                        // Populate input field when edit is clicked
-                        ></i>
+                    <div key={index} className=" flex flex-col gap-[10px] p-[16px] rounded-[6px] border-[#a53d35] border-[1.5px] w-[300px]">
+                      <div className="border-[1.5px] w-[100%] h-[90px] border-[#a53d35]  flex justify-center items-center  rounded-[7px]">
+                        <p className=" text-[40px]  text-center font-Montserrat ">
+                          {item?.counting}
+                        </p>
                       </div>
-                      <div
-                        className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
-                        onClick={handleDeleteOpen}
-                      >
-                        <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
+                      <div className="border-[1.5px] w-[100%] h-[50px]  flex  items-center border-[#a53d35] p-[3px] rounded-[6px]">
+                        <p className=" text-[16px] px-[10px] font-Montserrat ">
+                          {item?.name}
+                        </p>
+                      </div>
+                      <div className=" flex w-[100%] gap-[10px] ">
+                        <div className=" w-[100%] flex h-[45px]  text-white text-[20px] flex justify-center items-center  font-Montserrat bg-[#a53d35] rounded-[6px]"
+                        onClick={() => handleEdit(item, "achievement")}>
+                          <i
+                            className="fa-solid  cursor-pointer  text-[19px] fa-pen-to-square"
+                          // Populate input field when edit is clicked
+                          ></i>
+                        </div>
+                        <div
+                          className=" w-[70px] flex h-[45px]  text-white text-[20px]  justify-center items-center  font-Montserrat bg-[#ff1403] rounded-[6px] cursor-pointer"
+                          onClick={() => handleDeleteOpen(item?.id, "achievement")}
+                        >
+                          <i className="text-[18px] mt-[1px] text-[#ffffff] cursor-pointer fa-solid fa-trash-can"></i>
+                        </div>
                       </div>
                     </div>
-                  </div>
                   ))}
                 </div>
               </div>
@@ -665,7 +777,7 @@ export default function AboutUs() {
                     <div className="absolute bottom-0 flex w-[100%]">
                       <div
                         className="w-[50%] cursor-pointer flex justify-center items-center py-[10px]  bg-[red] rounded-bl-[10px] text-[#fff] font-[600] font-Poppins text-[20px]"
-                        onClick={handleDeleteClose}
+                        onClick={handleDelete}
                       >
                         <p className=" font-Montserrat">Delete</p>
                       </div>
@@ -839,9 +951,9 @@ export default function AboutUs() {
             {/* Save button */}
             <div
               className="w-[100%] font-Montserrat h-[45px] mt-[30px] rounded-md mx-auto cursor-pointer flex justify-center items-center text-[#fff] font-[600] bg-[#a53d35] active:scale-95 transition-transform duration-150"
-              onClick={handleServiceSave}
+              onClick={() => handleSave("service")}
             >
-              <p>Save</p>
+              <p> {mode === "edit" ? "Update" : "Submit"}</p>
             </div>
           </div>
         </ModalContent>

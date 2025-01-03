@@ -4,8 +4,22 @@ import {
   Modal as NextUIModal,
   ModalContent,
 } from "@nextui-org/react";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteContactUsAction, getContactUsAction } from "../../redux/action/userManagement";
 
 export default function ConatactUs() {
+
+  const dispatch = useDispatch();
+  const contactData = useSelector((state) => state.users.getContactUs);
+
+  const [isDeleteModal, setDeleteModal] = useState(false);
+  const [deleteContactId, setDeleteContactId] = useState(null);
+
+  useEffect(() => {
+    dispatch(getContactUsAction());
+  }, [dispatch])
+
+  console.log('contactData', contactData)
   // ================================
   // 1. STATE VARIABLES
   // ================================
@@ -40,12 +54,6 @@ export default function ConatactUs() {
   // Stores the list of contacts
   const [contacts, setContacts] = useState(dummyContacts);
 
-  // Controls visibility of the delete confirmation modal
-  const [isDeleteModal, setDeleteModal] = useState(false);
-
-  // Store the ID of the contact to delete
-  const [deleteContactId, setDeleteContactId] = useState(null);
-
   // ================================
   // 2. MODAL CONTROLS
   // ================================
@@ -64,15 +72,21 @@ export default function ConatactUs() {
   // ================================
   // 3. DELETE A CONTACT (LOCAL ONLY)
   // ================================
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteContactId) return;
 
-    // Filter out the deleted contact in local state
-    setContacts((prev) => prev.filter((contact) => contact.id !== deleteContactId));
+    try {
+      // Dispatch delete action
+      await dispatch(deleteContactUsAction(deleteContactId));
 
-    // Close modal and reset deleteContactId
-    setDeleteModal(false);
-    setDeleteContactId(null);
+      // Refresh contact list
+      dispatch(getContactUsAction());
+
+      // Close modal and reset deleteContactId
+      handleModalClose();
+    } catch (error) {
+      console.error("Error deleting contact:", error);
+    }
   };
 
   // ================================
@@ -118,27 +132,32 @@ export default function ConatactUs() {
                           </p>
                         </div>
                         {/* Email */}
-                        <div className="flex justify-start items-center text-center py-[8px] border-r border-b border-black px-3 min-w-[15%] max-w-[13%]">
+                        <div className="flex justify-start items-center text-center py-[8px] border-r border-b border-black px-3 min-w-[13%] max-w-[13%]">
                           <p className="md150:text-[16px] text-[12px] font-[600] font-Outfit text-[#fff]">
                             E mail
                           </p>
                         </div>
                         {/* Number */}
-                        <div className="flex justify-start items-center text-center py-[8px] border-r border-b border-black px-3 min-w-[15%] max-w-[15%]">
+                        <div className="flex justify-start items-center text-center py-[8px] border-r border-b border-black px-3 min-w-[12%] max-w-[12%]">
                           <p className="md150:text-[16px] text-[12px] font-[600] font-Outfit text-[#fff]">
                             Number
                           </p>
                         </div>
                         {/* Subject */}
-                        <div className="flex justify-start items-center text-center py-[8px] border-r border-b border-black px-3 min-w-[15%] max-w-[15%]">
+                        <div className="flex justify-start items-center text-center py-[8px] border-r border-b border-black px-3 min-w-[12%] max-w-[12%]">
                           <p className="md150:text-[16px] text-[12px] font-[600] font-Outfit text-[#fff]">
-                            Subject
+                            Website
                           </p>
                         </div>
                         {/* Message */}
-                        <div className="flex justify-start items-center text-center py-[8px] border-r border-b border-black px-3 min-w-[26%] max-w-[26%]">
+                        <div className="flex justify-start items-center text-center py-[8px] border-r border-b border-black px-3 min-w-[15%] max-w-[15%]">
                           <p className="md150:text-[16px] text-[12px] font-[600] font-Outfit text-[#fff]">
-                            Message
+                            Budget
+                          </p>
+                        </div>
+                        <div className="flex justify-start items-center text-center py-[8px] border-r border-b border-black px-3 min-w-[20%] max-w-[20%]">
+                          <p className="md150:text-[16px] text-[12px] font-[600] font-Outfit text-[#fff]">
+                            Description
                           </p>
                         </div>
                         {/* Action */}
@@ -149,7 +168,7 @@ export default function ConatactUs() {
                         </div>
                       </div>
                       {/* Table Rows */}
-                      {contacts.map((item, index) => (
+                      {contactData.map((item, index) => (
                         <div key={item.id} className="flex justify-between">
                           {/* Sr. + checkbox */}
                           <div className="flex justify-center text-center py-[7px] items-center border-r border-b border-black gap-[7px] px-3 min-w-[4%] max-w-[4%]">
@@ -169,27 +188,32 @@ export default function ConatactUs() {
                             </p>
                           </div>
                           {/* Email */}
-                          <div className="flex justify-start text-center py-[8px] border-r border-b border-black px-3 min-w-[15%] max-w-[15%]">
+                          <div className="flex justify-start text-center py-[8px] border-r border-b border-black px-3 min-w-[13%] max-w-[13%]">
                             <p className="md150:text-[15px] text-[13px] font-[500] font-Outfit text-[#000]">
                               {item.email}
                             </p>
                           </div>
                           {/* Number */}
-                          <div className="flex justify-start text-center py-[8px] border-r border-b border-black px-3 min-w-[15%] max-w-[15%]">
+                          <div className="flex justify-start text-center py-[8px] border-r border-b border-black px-3 min-w-[12%] max-w-[12%]">
                             <p className="md150:text-[15px] text-[13px] font-[500] font-Outfit text-[#000]">
-                              {item.number}
+                              {item.phone}
                             </p>
                           </div>
                           {/* Subject */}
-                          <div className="flex justify-start text-center py-[8px] border-r border-b border-black px-3 min-w-[15%] max-w-[15%]">
+                          <div className="flex justify-start text-center py-[8px] border-r border-b border-black px-3 min-w-[12%] max-w-[15%]">
                             <p className="md150:text-[15px] text-[13px] font-[500] font-Outfit text-[#000]">
-                              {item.subject}
+                              {item.website}
                             </p>
                           </div>
                           {/* Message */}
-                          <div className="flex justify-start text-center py-[8px] border-r border-b border-black px-3 min-w-[26%] max-w-[15%]">
+                          <div className="flex justify-start text-center py-[8px] border-r border-b border-black px-3 min-w-[15%] max-w-[15%]">
                             <p className="md150:text-[15px] text-[13px] font-[500] font-Outfit text-[#000]">
-                              {item.message}
+                              {item.budget}
+                            </p>
+                          </div>
+                          <div className="flex justify-start text-center py-[8px] border-r border-b border-black px-3 min-w-[20%] max-w-[20%]">
+                            <p className="md150:text-[15px] text-[13px] font-[500] font-Outfit text-[#000]">
+                              {item.description}
                             </p>
                           </div>
                           {/* Action */}
@@ -197,7 +221,7 @@ export default function ConatactUs() {
                             <p className="md150:text-[15px] text-[13px] font-[500] justify-center mfont-Outfit text-[#000]">
                               <i
                                 className="text-[15px] cursor-pointer text-[#ff0b0b] fa-solid fa-trash-can"
-                                onClick={() => handleModalOpen(item.id)}
+                                onClick={() => handleModalOpen(item._id)}
                               ></i>
                             </p>
                           </div>
